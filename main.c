@@ -161,7 +161,8 @@ int main()
     unsigned int limitX = 10;
     unsigned int blockCount = 1;
     float cubeScale = 1.0f;
-    float distanceScale = 0.00000001f;
+    #define MIN_DIS_SCALE 0.00000001f
+    float distanceScale = MIN_DIS_SCALE;
     float transLerp = 0.0f;
 
     //test
@@ -177,12 +178,12 @@ int main()
         if (IsKeyDown(KEY_RIGHT)) {selectBlock++; transLerp = 0.0f;}
         if (IsKeyDown(KEY_UP)) {selectBlock += limitX; transLerp = 0.0f;}
         if (IsKeyDown(KEY_DOWN)) {selectBlock -= limitX; transLerp = 0.0f;}
-        if (IsKeyPressed(KEY_I) && limitX < UINT_MAX) {limitX++; transLerp = 0.0f;}
-        if (IsKeyPressed(KEY_K) && limitX > 1) {limitX--; transLerp = 0.0f;}
-        if (IsKeyPressed(KEY_J)) {distanceScale/=1.5f; transLerp = 0.0f;}
-        if (IsKeyPressed(KEY_L)) {distanceScale*=1.5f; transLerp = 0.0f;}
-        if (IsKeyPressed(KEY_U)) {cubeScale/=1.1f; transLerp = 0.0f;}
-        if (IsKeyPressed(KEY_O)) {cubeScale*=1.1f; transLerp = 0.0f;}
+        if (IsKeyDown(KEY_I) && limitX < UINT_MAX) {limitX++; transLerp = 0.0f;}
+        if (IsKeyDown(KEY_K) && limitX > 1) {limitX--; transLerp = 0.0f;}
+        if (IsKeyDown(KEY_J) && distanceScale > MIN_DIS_SCALE) {distanceScale/=1.1f; transLerp = 0.999f;}
+        if (IsKeyDown(KEY_L) && distanceScale < 1.0f / MIN_DIS_SCALE) {distanceScale*=1.1f; transLerp = 0.999f;}
+        if (IsKeyDown(KEY_U)) {cubeScale/=1.1f; transLerp = 0.999f;}
+        if (IsKeyDown(KEY_O)) {cubeScale*=1.1f; transLerp = 0.999f;}
 
         if (IsKeyPressed(KEY_T))//new test
         {
@@ -204,19 +205,21 @@ int main()
                 struct blockLL* iterator = root.next;
                 unsigned long referenceAddressPos = (unsigned long)(uintptr_t)root.mallocAddr;
                 Vector3 cubePosition;
-                int index = 0;
+                unsigned int index = 0;
 
                 while(iterator)
                 {
                     cubePosition.x = (referenceAddressPos - (unsigned long)(uintptr_t)iterator->mallocAddr) * distanceScale;
                     cubePosition.z = (index % limitX) * cubeScale;
                     cubePosition.y = (index / limitX) * cubeScale;
-                    DrawCubeWires(cubePosition, cubeScale, cubeScale, cubeScale, RED);
+                    DrawCubeWires(cubePosition, cubeScale * iterator->size * distanceScale, cubeScale, cubeScale, RED);
 
                     iterator = iterator->next;
-                    if(index == selectBlock % blockCount)
+                    if(index == selectBlock % blockCount && transLerp < 1.0f)
                     {
-                        if(transLerp <= 1.0f) transLerp += 0.1f;
+                        transLerp += 0.1f;
+                        if (transLerp > 1.0f)
+                            transLerp = 1.0f;
                         camera.target = Vector3Lerp(camera.target , cubePosition , transLerp);
                         cubePosition.y += 4.5f;
                         cubePosition.x += 3.5f;
