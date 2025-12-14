@@ -205,7 +205,8 @@ int main()
 
                 struct blockLL* iterator = root.next;
                 unsigned long referenceAddressPos = (unsigned long)(uintptr_t)root.mallocAddr;
-                Vector3 cubePosition;
+                Vector3 cubePosition = {0};
+                Vector3 lastPosition = {0};
                 unsigned int index = 0;
 
                 while(iterator)
@@ -214,7 +215,9 @@ int main()
                     cubePosition.z = (index % limitX) * cubeScale;
                     cubePosition.y = (index / limitX) * cubeScale;
                     DrawCubeWires(cubePosition, cubeScale * iterator->size * distanceScale, cubeScale, cubeScale, RED);
-
+                    DrawCube(cubePosition, cubeScale * iterator->size * distanceScale/10.0f, cubeScale/10.0f, cubeScale/10.0f, BLACK);
+                    DrawLine3D(lastPosition , cubePosition , BLUE);
+                    lastPosition = cubePosition;
                     iterator = iterator->next;
                     if(index == selectBlock % blockCount && transLerp < 1.0f)
                     {
