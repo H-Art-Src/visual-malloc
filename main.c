@@ -16,12 +16,9 @@ void* mallocVis(size_t size)
 {
     tail->next = malloc(sizeof(blockLL));
     tail = tail->next;
-
-    tail->mallocAddr = malloc(size);
     tail->size = size;
     tail->next = NULL;
-    
-    return tail->mallocAddr;
+    return tail->mallocAddr = malloc(size);
 }
 
 
