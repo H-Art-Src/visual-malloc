@@ -210,7 +210,7 @@ int main()
 
                 while(iterator)
                 {
-                    cubePosition.x = (referenceAddressPos - (unsigned long)(uintptr_t)iterator->mallocAddr) * distanceScale;
+                    cubePosition.x = (referenceAddressPos - (unsigned long)(uintptr_t)iterator->mallocAddr) * distanceScale * cubeScale;
                     cubePosition.z = (index % limitX) * cubeScale;
                     cubePosition.y = (index / limitX) * cubeScale;
                     DrawCubeWires(cubePosition, cubeScale * iterator->size * distanceScale, cubeScale, cubeScale, RED);
