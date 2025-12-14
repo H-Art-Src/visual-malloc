@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -155,11 +156,13 @@ int main()
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
-    Vector3 mapPosition = { -16.0f, 0.0f, -8.0f };          // Set model position
     bool pause = false;     // Pause camera orbital rotation (and zoom)
-    int selectBlock = 0;
-    int blockCount = 1;
+    unsigned int selectBlock = 0;
+    unsigned int limitX = 10;
+    unsigned int blockCount = 1;
+    float cubeScale = 1.0f;
     float distanceScale = 0.00000001f;
+    float transLerp = 0.0f;
 
     //test
     random_malloc_and_partial_free(12345, 1000);
@@ -170,10 +173,17 @@ int main()
         // Update
         //----------------------------------------------------------------------------------
         if (IsKeyPressed(KEY_P)) pause = !pause;
-        if (IsKeyPressed(KEY_LEFT)) selectBlock--;
-        if (IsKeyPressed(KEY_RIGHT)) selectBlock++;
-        if (IsKeyPressed(KEY_UP)) distanceScale *= 10.0f;
-        if (IsKeyPressed(KEY_DOWN)) distanceScale /= 10.0f;
+        if (IsKeyDown(KEY_LEFT)) {selectBlock--; transLerp = 0.0f;}
+        if (IsKeyDown(KEY_RIGHT)) {selectBlock++; transLerp = 0.0f;}
+        if (IsKeyDown(KEY_UP)) {selectBlock += limitX; transLerp = 0.0f;}
+        if (IsKeyDown(KEY_DOWN)) {selectBlock -= limitX; transLerp = 0.0f;}
+        if (IsKeyPressed(KEY_I) && limitX < UINT_MAX) {limitX++; transLerp = 0.0f;}
+        if (IsKeyPressed(KEY_K) && limitX > 1) {limitX--; transLerp = 0.0f;}
+        if (IsKeyPressed(KEY_J)) {distanceScale/=1.5f; transLerp = 0.0f;}
+        if (IsKeyPressed(KEY_L)) {distanceScale*=1.5f; transLerp = 0.0f;}
+        if (IsKeyPressed(KEY_U)) {cubeScale/=1.1f; transLerp = 0.0f;}
+        if (IsKeyPressed(KEY_O)) {cubeScale*=1.1f; transLerp = 0.0f;}
+
         if (IsKeyPressed(KEY_T))//new test
         {
             free_all_remaining();
@@ -192,22 +202,25 @@ int main()
             BeginMode3D(camera);
 
                 struct blockLL* iterator = root.next;
-                long referenceAddressPos = (long)(uintptr_t)root.mallocAddr;
-                Vector3 cubePosition = mapPosition;
-                float cubeScale = 1.0f;
+                unsigned long referenceAddressPos = (unsigned long)(uintptr_t)root.mallocAddr;
+                Vector3 cubePosition;
                 int index = 0;
 
                 while(iterator)
                 {
-                    cubePosition.x = (float){referenceAddressPos} - distanceScale * (float)(long)(uintptr_t)iterator->mallocAddr;
+                    cubePosition.x = (referenceAddressPos - (unsigned long)(uintptr_t)iterator->mallocAddr) * distanceScale;
+                    cubePosition.z = (index % limitX) * cubeScale;
+                    cubePosition.y = (index / limitX) * cubeScale;
                     DrawCubeWires(cubePosition, cubeScale, cubeScale, cubeScale, RED);
 
                     iterator = iterator->next;
                     if(index == selectBlock % blockCount)
                     {
-                        //camera.position = cubePosition;
-                        //camera.position.x += 0.5f;
-                        camera.target = cubePosition;
+                        if(transLerp <= 1.0f) transLerp += 0.1f;
+                        camera.target = Vector3Lerp(camera.target , cubePosition , transLerp);
+                        cubePosition.y += 4.5f;
+                        cubePosition.x += 3.5f;
+                        camera.position = Vector3Lerp(camera.position , cubePosition , transLerp);
                     }
                     index++;
                 }
