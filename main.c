@@ -42,6 +42,7 @@ bool freeVis(void* ptr)
         }
         iterator = next;
     }
+    free(ptr);
     return false;
 }
 
@@ -75,7 +76,7 @@ void random_malloc_and_partial_free(unsigned int seed, size_t num_operations) {
     for (size_t i = 0; i < tracker.count; i++) {
         freeVis(tracker.pointers[i]);
     }
-    freeVis(tracker.pointers);
+    free(tracker.pointers);
     tracker.pointers = NULL;
     tracker.count = 0;
     tracker.capacity = 0;
