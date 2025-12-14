@@ -27,6 +27,8 @@ void* mallocVis(size_t size)
 
 bool freeVis(void* ptr)
 {
+    free(ptr);
+
     struct blockLL* iterator = &root;
     while(iterator)
     {
@@ -36,13 +38,11 @@ bool freeVis(void* ptr)
             iterator->next = next->next;
             if(tail == next)
                 tail = iterator;
-            free(ptr);
             free(next);
             return true;
         }
         iterator = next;
     }
-    free(ptr);
     return false;
 }
 
