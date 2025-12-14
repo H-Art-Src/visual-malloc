@@ -139,6 +139,7 @@ void free_all_remaining(void) {
 
 int main()
 {
+    tail = &root;
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
